@@ -3,122 +3,151 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # --------------------------
-# Page Title
+# Dataset Instructions
+# --------------------------
+st.markdown("""
+### 📂 Dataset Required
+
+Please upload the **Online Retail Dataset (CSV file)** to use this dashboard.
+
+🔗 Download dataset from:
+https://www.kaggle.com/datasets/vijayuv/onlineretail
+
+📌 File name: **OnlineRetail.csv**
+
+Once uploaded, the dashboard will automatically generate insights.
+""")
+
+
+# --------------------------
+# Page Config
 # --------------------------
 st.set_page_config(page_title="Customer Analysis Dashboard", layout="wide")
-st.title("📊 Customer Purchase Behavior Analysis")
+
+st.title("📊 Customer Purchase Behavior Analysis Dashboard")
 
 # --------------------------
-# Load Dataset
+# File Upload
 # --------------------------
-@st.cache_data
-def load_data():
-    df = pd.read_csv("OnlineRetail.csv", encoding='ISO-8859-1')
-    return df
+file = st.file_uploader("📂 Upload OnlineRetail.csv", type=["csv"])
 
-df = load_data()
+if file is not None:
 
-# --------------------------
-# Data Cleaning
-# --------------------------
-df.dropna(subset=['CustomerID'], inplace=True)
-df = df[df['Quantity'] > 0]
-df = df[df['UnitPrice'] > 0]
+    # --------------------------
+    # Load Data
+    # --------------------------
+    df = pd.read_csv(file, encoding='ISO-8859-1')
 
-df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
-df['TotalPrice'] = df['Quantity'] * df['UnitPrice']
+    st.success("✅ Dataset loaded successfully")
 
-# --------------------------
-# Sidebar Filters
-# --------------------------
-st.sidebar.header("Filters")
+    # --------------------------
+    # Data Cleaning
+    # --------------------------
+    df.dropna(subset=['CustomerID'], inplace=True)
+    df = df[df['Quantity'] > 0]
+    df = df[df['UnitPrice'] > 0]
 
-countries = df['Country'].unique()
-selected_country = st.sidebar.selectbox("Select Country", countries)
+    df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
+    df['TotalPrice'] = df['Quantity'] * df['UnitPrice']
 
-filtered_df = df[df['Country'] == selected_country]
+    # --------------------------
+    # Sidebar Filters
+    # --------------------------
+    st.sidebar.header("🔍 Filters")
 
-# --------------------------
-# Metrics
-# --------------------------
-st.subheader("📌 Key Metrics")
+    countries = df['Country'].unique()
+    selected_country = st.sidebar.selectbox("Select Country", countries)
 
-total_revenue = filtered_df['TotalPrice'].sum()
-total_orders = filtered_df['InvoiceNo'].nunique()
-total_customers = filtered_df['CustomerID'].nunique()
+    filtered_df = df[df['Country'] == selected_country]
 
-col1, col2, col3 = st.columns(3)
-col1.metric("Total Revenue", f"${round(total_revenue, 2)}")
-col2.metric("Total Orders", total_orders)
-col3.metric("Total Customers", total_customers)
+    # --------------------------
+    # Key Metrics
+    # --------------------------
+    st.subheader("📌 Key Metrics")
 
-# --------------------------
-# Top Products
-# --------------------------
-st.subheader("🔥 Top 10 Products")
+    total_revenue = filtered_df['TotalPrice'].sum()
+    total_orders = filtered_df['InvoiceNo'].nunique()
+    total_customers = filtered_df['CustomerID'].nunique()
 
-top_products = (
-    filtered_df.groupby('Description')['Quantity']
-    .sum()
-    .sort_values(ascending=False)
-    .head(10)
-)
+    col1, col2, col3 = st.columns(3)
 
-fig1, ax1 = plt.subplots()
-top_products.plot(kind='bar', ax=ax1)
-ax1.set_ylabel("Quantity Sold")
-st.pyplot(fig1)
+    col1.metric("💰 Total Revenue", f"${round(total_revenue, 2)}")
+    col2.metric("📦 Total Orders", total_orders)
+    col3.metric("👥 Total Customers", total_customers)
 
-# --------------------------
-# Revenue by Country
-# --------------------------
-st.subheader("🌍 Top Countries by Revenue")
+    # --------------------------
+    # Top Products
+    # --------------------------
+    st.subheader("🔥 Top 10 Products")
 
-country_sales = (
-    df.groupby('Country')['TotalPrice']
-    .sum()
-    .sort_values(ascending=False)
-    .head(10)
-)
+    top_products = (
+        filtered_df.groupby('Description')['Quantity']
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+    )
 
-fig2, ax2 = plt.subplots()
-country_sales.plot(kind='bar', ax=ax2)
-ax2.set_ylabel("Revenue")
-st.pyplot(fig2)
+    fig1, ax1 = plt.subplots()
+    top_products.plot(kind='bar', ax=ax1)
+    ax1.set_ylabel("Quantity Sold")
+    ax1.set_title("Top Products")
+    st.pyplot(fig1)
 
-# --------------------------
-# Monthly Sales Trend
-# --------------------------
-st.subheader("📈 Monthly Sales Trend")
+    # --------------------------
+    # Revenue by Country
+    # --------------------------
+    st.subheader("🌍 Top Countries by Revenue")
 
-filtered_df['Month'] = filtered_df['InvoiceDate'].dt.to_period('M')
-monthly_sales = filtered_df.groupby('Month')['TotalPrice'].sum()
+    country_sales = (
+        df.groupby('Country')['TotalPrice']
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+    )
 
-fig3, ax3 = plt.subplots()
-monthly_sales.plot(ax=ax3)
-ax3.set_ylabel("Revenue")
-st.pyplot(fig3)
+    fig2, ax2 = plt.subplots()
+    country_sales.plot(kind='bar', ax=ax2)
+    ax2.set_ylabel("Revenue")
+    ax2.set_title("Top Countries")
+    st.pyplot(fig2)
 
-# --------------------------
-# Top Customers
-# --------------------------
-st.subheader("💎 Top 10 High-Value Customers")
+    # --------------------------
+    # Monthly Sales Trend
+    # --------------------------
+    st.subheader("📈 Monthly Sales Trend")
 
-top_customers = (
-    filtered_df.groupby('CustomerID')['TotalPrice']
-    .sum()
-    .sort_values(ascending=False)
-    .head(10)
-)
+    filtered_df['Month'] = filtered_df['InvoiceDate'].dt.to_period('M')
+    monthly_sales = filtered_df.groupby('Month')['TotalPrice'].sum()
 
-st.dataframe(top_customers)
+    fig3, ax3 = plt.subplots()
+    monthly_sales.plot(ax=ax3)
+    ax3.set_ylabel("Revenue")
+    ax3.set_title("Monthly Trend")
+    st.pyplot(fig3)
 
-# --------------------------
-# Insights Section
-# --------------------------
-st.subheader("🧠 Key Insights")
+    # --------------------------
+    # Top Customers
+    # --------------------------
+    st.subheader("💎 Top 10 High-Value Customers")
 
-st.write("✔ A small number of customers contribute significantly to total revenue.")
-st.write("✔ Certain products dominate sales volume.")
-st.write("✔ Revenue shows variation across months indicating seasonal trends.")
-st.write("✔ Geographic regions have different purchasing behaviors.")
+    top_customers = (
+        filtered_df.groupby('CustomerID')['TotalPrice']
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+    )
+
+    st.dataframe(top_customers)
+
+    # --------------------------
+    # Insights Section
+    # --------------------------
+    st.subheader("🧠 Key Insights")
+
+    st.write("✔ A small number of customers contribute significantly to total revenue")
+    st.write("✔ Certain products dominate sales volume")
+    st.write("✔ Revenue shows seasonal trends over time")
+    st.write("✔ Different countries show different purchasing behavior")
+
+else:
+    st.info("📂 Please upload the dataset to start analysis")
