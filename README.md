@@ -3,6 +3,13 @@
 ## 🚀 Overview
 An interactive data analysis dashboard built using Streamlit to analyze e-commerce customer behavior and sales trends.
 
+## 📂 Dataset
+
+Download dataset from:
+https://www.kaggle.com/datasets/vijayuv/onlineretail
+
+File used: OnlineRetail.csv
+
 ## 🛠 Tech Stack
 - Python
 - Pandas
@@ -16,8 +23,6 @@ An interactive data analysis dashboard built using Streamlit to analyze e-commer
 - High-value customer identification
 - Interactive filters
 
-## 📸 Screenshots
-![Dashboard](screenshot1.png)
 
 ## 📌 Key Insights
 - A small group of customers contributes most revenue
